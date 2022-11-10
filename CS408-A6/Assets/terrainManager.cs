@@ -18,6 +18,7 @@ public class terrainManager : MonoBehaviour
     protected int alphaLayerCount;
     private int xResolution;
     private int zResolution;
+    Vector3 heightMapScale;
     //Original
     private float[,] heightMap;
     //Backup data
@@ -31,6 +32,8 @@ public class terrainManager : MonoBehaviour
         //load in map size data
         xResolution = terrain.terrainData.heightmapResolution;
         zResolution = terrain.terrainData.heightmapResolution;
+        heightMapScale = terrain.terrainData.heightmapScale;
+
         alphaMapWidth = terrain.terrainData.alphamapWidth;
         alphaMapHeight = terrain.terrainData.alphamapHeight;
         alphaLayerCount = terrain.terrainData.alphamapLayers;
@@ -72,37 +75,40 @@ public class terrainManager : MonoBehaviour
         int z = (int)((temp.z / terrain.terrainData.size.z) * zResolution);
         //Add particle to said location
         float y = heightMap[x, z] + changePerHit;
-
         float[,] height = new float[1, 1];
         height[0, 0] = Mathf.Clamp(y, 0, 1);     //A 2D array of 1 point
         heightMap[x, z] = Mathf.Clamp(y, 0, 1);  //allows you to add more each time.
-
-        //float y;
-        /*
-                for (int i = 0; i < 3; i++)
+        terrain.terrainData.SetHeights(x, z, height);
+        return;
+        //Smooth out result
+        for (x= x- (int)heightMapScale.x; x < x+3 * (int)heightMapScale.x; x+= (int)heightMapScale.x)
         {
-            for (int j = 0; j < 3; j++)
+            for (z= z- (int)heightMapScale.z; z < z+3* (int)heightMapScale.z; z+= (int)heightMapScale.z)
             {
-                if (i == 1 && j == 1)
-                {
-                    y = heightMap[x, z] + changePerHit/2;
-                    height[x, y] = Mathf.Clamp(y, 0, 1);
-                    heightMap[x, z] = Mathf.Clamp(y, 0, 1);
-                }
-                else
-                {
-                    y = heightMap[x+i-1, z+i-1] + changePerHit / 4;
-                    height[x + i-1, y + j-1] = Mathf.Clamp(y, 0, 1);
-                    heightMap[x+i-1, z+j-1] = Mathf.Clamp(y, 0, 1);
-                }
+                y = heightMap[x, z] + changePerHit;
+                height[0, 0] = Mathf.Clamp(y, 0, 1);
+                heightMap[x, z] = Mathf.Clamp(y, 0, 1);
+                terrain.terrainData.SetHeights(x, z, height);
             }
         }
+        //smoothAll();
         return;
-        */
+    }
+    void smoothAll()
+    {
+        Debug.Log(zResolution);
+        for (int i = 0; i < xResolution; i++)
+        {
+            for (int j = 0; j < zResolution; j++)
+            {
+                heightMap[i, j] = 0;
+                //terrain.terrainData.SetHeights(i, j, heightMap);
+            }
+        }
+    }
+    void smoothPoint()
+    {
 
-        terrain.terrainData.SetHeights(x, z, height);
-
-        //Debug.Log(height[0,0]);
     }
     Vector3 findStopLocation(float x, float z)
     {
@@ -117,23 +123,26 @@ public class terrainManager : MonoBehaviour
         int smallestX = 1;
         int smallestZ = 1;
         //float adjustedIncrement = (1 / terrain.terrainData.size.x) * xResolution;
-        //System.Random r = new System.Random();
-        //return new Vector3((float)(r.Next(-1, 2) + x),0f, (float)(r.Next(-1, 2) + z));
-        //return findStopLocation((float)(r.Next(-1, 2) + x), (float)(r.Next(-1, 2) + z));
+        System.Random r = new System.Random();
+        return findStopLocation((float)(r.Next(-1, 2) * heightMapScale.x + x), (float)(r.Next(-1, 2) * heightMapScale.z + z));
+        return new Vector3((float)(r.Next(-1, 2)*heightMapScale.x + x),0f, (float)(r.Next(-1, 2) * heightMapScale.z + z));
+        return findStopLocation((float)(r.Next(-1, 2) + x), (float)(r.Next(-1, 2) + z));
+        //Debug.Log(adjustedIncrement);
         for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 3; j++)
             {
 
-                if (smallest > findAngle(new Vector3(x+i-1, 0f, z+j-1)))
+                if (smallest > findAngle(new Vector3(x+(i-1), 0f, z+(j-1))))
                 {
-                    smallest = findAngle(new Vector3(x + i - 1, 0f, z + j - 1));
+                    smallest = findAngle(new Vector3(x + (i - 1), 0f, z + (j - 1)));
                     smallestX = i;
                     smallestZ = j;
                     Debug.Log("youre in");
                 }
             }
         }
+        //return new Vector3((float)(x + smallestX - 1), 0f, (float)(z + smallestZ - 1));
         return findStopLocation((float)(smallestX - 1 + x), (float)(smallestZ - 1 + z));
     }
     //bool lessThanAngle(float centerHeight, float edgeHeight)
