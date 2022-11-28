@@ -32,6 +32,7 @@ public class terrainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Application.targetFrameRate = 60;
         neighborh = new float[3];
         td = terrain.terrainData;
         MAX_SLOPE_ANGLE = (MAX_SLOPE_ANGLE / 180f) * Mathf.PI;
@@ -171,7 +172,7 @@ public class terrainManager : MonoBehaviour
         updateBestNeighbor(x, y, height);
         addSand(x, y, height);
     }
-    void hit(Vector3 pos)
+    public void hit(Vector3 pos)
     {
         // compute standard local positions and offsets
         Vector3 terrainLocalPos = pos - terrain.transform.position;
@@ -214,5 +215,6 @@ public class terrainManager : MonoBehaviour
     {
         return (int)((point / terrainSize) * xResolution);
     }
+
 }
 
