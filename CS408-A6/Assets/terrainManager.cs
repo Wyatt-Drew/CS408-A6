@@ -34,9 +34,8 @@ public class terrainManager : MonoBehaviour
     {
         neighborh = new float[3];
         td = terrain.terrainData;
-        MAX_SLOPE_ANGLE = MAX_SLOPE_ANGLE / 180f * Mathf.PI;
-        //unit = 2* td.size.x / (td.heightmapResolution - 1);
-        unit = 1;
+        MAX_SLOPE_ANGLE = (MAX_SLOPE_ANGLE / 180f) * Mathf.PI;
+        unit = td.size.x / (td.heightmapResolution - 1);
        // Debug.Log("td" + td.size.x + "res" + td.heightmapResolution);
         terrainSize = terrain.terrainData.size.x;
         //load in map size data
@@ -141,7 +140,8 @@ public class terrainManager : MonoBehaviour
     }
     void addSand(int x, int y, float height)
     {
-        float c = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((neighborh[0] - x) * (neighborh[0] - x) + (neighborh[1] - y) * (neighborh[1] - y) * unit);
+        //float c = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((neighborh[0] - x) * (neighborh[0] - x) + (neighborh[1] - y) * (neighborh[1] - y) * unit);
+        float c = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((neighborh[0] - x) * (neighborh[0] - x) + (neighborh[1] - y) * (neighborh[1] - y)) * unit;
         // positive offset?
         if (neighborh[2] > 0)
         {
