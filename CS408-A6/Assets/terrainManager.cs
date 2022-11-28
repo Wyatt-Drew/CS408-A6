@@ -1,3 +1,4 @@
+﻿
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,13 +7,15 @@ using System;
 public class terrainManager : MonoBehaviour
 {
     //Other variables
-    float changePerHit = 0.001f; //0.01f
+    float changePerHit = 10f; //0.01f
     public int sandID = 1;
-    public float effectSize = 1f;
-    float coneAngle = 5f;
+    float MAX_SLOPE_ANGLE = 30f;
+    float[] neighborh;
     //Terrain data
     private float terrainSize;
     public Terrain terrain;
+    TerrainData td;
+    float unit;
     protected int alphaMapWidth;
     protected int alphaMapHeight;
     protected int alphaLayerCount;
@@ -29,6 +32,12 @@ public class terrainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        neighborh = new float[3];
+        td = terrain.terrainData;
+        MAX_SLOPE_ANGLE = MAX_SLOPE_ANGLE / 180f * Mathf.PI;
+        //unit = 2* td.size.x / (td.heightmapResolution - 1);
+        unit = 1;
+       // Debug.Log("td" + td.size.x + "res" + td.heightmapResolution);
         terrainSize = terrain.terrainData.size.x;
         //load in map size data
         xResolution = terrain.terrainData.heightmapResolution;
@@ -59,33 +68,131 @@ public class terrainManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            RaycastHit hit;
+            RaycastHit hit1;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out hit1))
             {
-
-                //test();
-                if (hit.point != null)
+                if (hit1.point != null)
                 {
-                    //Debug.Log("adjusted coords:" + adjust(hit.point.x) + adjust(hit.point.z));
-                    raiseTerrainHelper(hit.point);
+                    hit(hit1.point);
+                    //heightMap[10, 10] = 10f;
+                    //terrain.terrainData.SetHeights(0, 0, heightMap);
                 }
-                    
-                // area middle point x and z, area size, texture ID from terrain textures
-                //updateTerrainAlpha(hit.point, effectSize, sandID);
             }
         }
         if (Input.GetMouseButtonDown(1))
         {
-            RaycastHit hit;
+            RaycastHit hit1;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out hit1))
             {
-                if (hit.point != null)
-                    Debug.Log(findAngle(hit.point));
-                
-                // area middle point x and z, area size, texture ID from terrain textures
-                //updateTerrainAlpha(hit.point, effectSize, sandID);
+                if (hit1.point != null)
+                    Debug.Log(findAngle(hit1.point));
+            }
+        }
+    }
+    void updateBestNeighbor(int x, int y, float height)
+    {
+        // set the neighbor to an impossibly bad option.  
+        //Assumes at least 1 neighbor exists
+        neighborh[0] = 0;
+        neighborh[1] = 0;
+        neighborh[2] = -1000;
+        int r = 8;
+        // current point (i,j) in circle around point (x,y)
+        int i, j;
+        // number of points distributed horizontally and
+        // vertically across circle
+        int nx, ny;
+        // neighbor at which maximum offset height occurs
+        ny = Mathf.FloorToInt(r);
+        // process all points vertically across circle radius
+        for (j = y - ny; j <= y + ny; j++)
+        {
+            nx = Mathf.FloorToInt(Mathf.Sqrt(r * r - (j - y) * (j - y)));
+            // process all points horizontally across circle radius
+            for (i = x - nx; i <= x + nx; i++)
+            {
+                // check to ensure that point (i,j) is not at the
+                // center of the circle and  not beyond the edge of
+                // the terrain and is in the circle
+                bool t1 = (j < 0 || j > td.heightmapResolution - 1 || i < 0 || i > td.heightmapResolution - 1); //outside map
+                bool t2 = ((j - y) * (j - y) + (i - x) * (i - x) > (r * r));  //outside circle
+                bool t3 = (j == y && i == x);  //Ignoire center of circle
+                if (t3 || t1 || t2)
+                {
+                    continue;
+                }
+                // determine the height based on the distance between // it and the center of the dropping coordinates
+                float nc = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((i - x) * (i - x) + (j - y) * (j - y)) * unit;
+                // if this height is lower than the determined height,
+                // then update the selection of the neighbor
+
+                float tdheight = heightMap[j, i] * td.heightmapScale.y;
+
+                if (tdheight < height - nc && height - nc - tdheight > neighborh[2])
+                {
+                    neighborh[0] = i;
+                    neighborh[1] = j;
+                    neighborh[2] = height - nc - tdheight;
+                }
+            }
+        }
+    }
+    void addSand(int x, int y, float height)
+    {
+        float c = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((neighborh[0] - x) * (neighborh[0] - x) + (neighborh[1] - y) * (neighborh[1] - y) * unit);
+        // positive offset?
+        if (neighborh[2] > 0)
+        {
+            // determine additional height to add
+            float extrah = height - Mathf.Max(td.GetHeight((int)neighborh[0], (int)neighborh[1]) + c, td.GetHeight(x, y));
+            // record change in height in heightmap
+            float[,] height2 = new float[1, 1];
+            if ((y >= 0) && (y <= td.heightmapResolution - 1) && (x >= 0) && (x <= td.heightmapResolution - 1))
+            {
+                height2[0, 0] = (height - extrah) / td.heightmapScale.y;
+                heightMap[y, x] = height2[0, 0];
+                //Debug.Log("in 1");
+            }
+            else
+            {
+                height2[0, 0] = height / td.heightmapScale.y;
+                heightMap[y, x] = height2[0, 0];
+                //Debug.Log("in 2");
+            }
+            terrain.terrainData.SetHeights(x, y, height2); //For whatever reason X and Y really are reversed here.
+            // increase height of pile
+            CreatePile((int)neighborh[0], (int)neighborh[1], td.GetHeight((int)neighborh[0], (int)neighborh[1]) + extrah);
+        }
+    }
+    void CreatePile(int x, int y, float height)
+    {
+        updateBestNeighbor(x, y, height);
+        addSand(x, y, height);
+    }
+    void hit(Vector3 pos)
+    {
+        // compute standard local positions and offsets
+        Vector3 terrainLocalPos = pos - terrain.transform.position;
+        float nx = Mathf.InverseLerp(0, td.size.x, terrainLocalPos.x) * (td.heightmapResolution - 1);
+        float ny = Mathf.InverseLerp(0, td.size.z, terrainLocalPos.z) * (td.heightmapResolution - 1);
+        float fx = Mathf.Floor(nx);
+        float fy = Mathf.Floor(ny);
+        float wx = nx - fx;
+        float wy = ny - fy;
+        // deform each neighboring grid point in the heightmap
+        for (int j = 0; j <= 1; j++)
+        {
+            for (int i = 0; i <= 1; i++)
+            {
+                // compute increased height resulting from impact
+                float addHeight = (float)((1 - i) + (2 * i - 1) * wx) * ((1 - j) + (2 * j - 1) * wy) * changePerHit;
+                //Debug.Log(addHeight + "add");
+                float oldHeight = heightMap[(int)fy + j, (int)fx + i] * td.heightmapScale.y;
+                // add increased height to current point
+                float[,] newHeightData = new float[1, 1] { { oldHeight + addHeight } };
+                CreatePile((int)fx + i, (int)fy + j, newHeightData[0, 0]);
             }
         }
     }
@@ -96,84 +203,6 @@ public class terrainManager : MonoBehaviour
                 heightMap[i, j] = 0;
         terrain.terrainData.SetHeights(0, 0, heightMap);
     }
-    private void raiseTerrainHelper(Vector3 point)
-    {
-        //Calculate where it stops rolling (follows gravity when over the set degrees STARTING angle)
-        Vector3 temp = findStopLocation(point);
-        raiseTerrainHeight(temp, 1);
-        //hitMap[(int)point.x, (int)point.z] += 1; 
-        //Smooth(temp);
-    }
-    
-    private void raiseTerrainHeight(Vector3 point, float cardinality)
-    {
-        //Map that point to the proper location
-        int x = adjust(point.x);
-        int z = adjust(point.z);
-        //Add particle to said location
-        float y = heightMap[x, z] + changePerHit*cardinality;
-        float[,] height = new float[1, 1];
-        height[0, 0] = Mathf.Clamp(y, 0, 1);     //A 2D array of 1 point
-        heightMap[x, z] = Mathf.Clamp(y, 0, 1);  //allows you to add more each time.
-        terrain.terrainData.SetHeights(x, z, height);
-        return;
-        for (int i = -2; i < 3; i++)
-            for (int j = -2; j < 3; j++)
-            {
-                y = heightMap[x + i * (int)heightMapScale.x, z + j * (int)heightMapScale.z] + changePerHit/2;
-                height[0, 0] = Mathf.Clamp(y, 0, 1);
-                heightMap[x + i * (int)heightMapScale.x, z + j * (int)heightMapScale.z] = Mathf.Clamp(y, 0, 1);
-                terrain.terrainData.SetHeights(x + i * (int)heightMapScale.x, z + j * (int)heightMapScale.z, height);
-            }
-                
-
-        //terrain.terrainData.SetHeights(x, z, height);
-        return;
-        //Smooth out result
-        for (x= x- (int)heightMapScale.x; x < x+3 * (int)heightMapScale.x; x+= (int)heightMapScale.x)
-        {
-            for (z= z- (int)heightMapScale.z; z < z+3* (int)heightMapScale.z; z+= (int)heightMapScale.z)
-            {
-                y = heightMap[x, z] + changePerHit;
-                height[0, 0] = Mathf.Clamp(y, 0, 1);
-                heightMap[x, z] = Mathf.Clamp(y, 0, 1);
-                terrain.terrainData.SetHeights(x, z, height);
-            }
-        }
-        //smoothAll();
-        return;
-    }
-    bool underMaxDeltaHeight(Vector3 point)
-    {
-        int x = adjust(point.x);
-        int z = adjust(point.z);
-        for (int i = -1; i < 2; i++)
-        {
-            for (int j = -1; j < 2; j++)
-            {
-                if (heightMap[x, z] - changePerHit > heightMap[x + i, z + j])
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    Vector3 findStopLocation(Vector3 point)
-    {
-        if (underMaxDeltaHeight(point))
-        {
-            return point;
-        }
-        
-        //It is too high.  The sand particle falls down hill.  Find the smallest point around it
-        System.Random r = new System.Random();
-        return findStopLocation(new Vector3((float)(r.Next(-1, 2) * heightMapScale.x + point.x), 0f,(float)(r.Next(-1, 2) * heightMapScale.z + point.z)));
-       // return new Vector3((float)(r.Next(-1, 2)*heightMapScale.x + x),0f, (float)(r.Next(-1, 2) * heightMapScale.z + z));
-        //return findStopLocation((float)(r.Next(-1, 2) + x), (float)(r.Next(-1, 2) + z));
-        
-    }
-    //bool lessThanAngle(float centerHeight, float edgeHeight)
     float findAngle(Vector3 point)
     {
         float xAdjusted = ((point.x / terrain.terrainData.size.x));
@@ -181,59 +210,9 @@ public class terrainManager : MonoBehaviour
         float actualAngle = terrain.terrainData.GetSteepness(xAdjusted, zAdjusted);
         return actualAngle;
     }
-    bool lessThanAngle(Vector3 point)
-    {
-        float xAdjusted = ((point.x / terrain.terrainData.size.x));
-        float zAdjusted = ((point.z / terrain.terrainData.size.z));
-        float actualAngle = terrain.terrainData.GetSteepness(xAdjusted, zAdjusted);
-        Debug.Log("angle" + actualAngle);
-        return (actualAngle < coneAngle);
-    }
     int adjust(float point)
     {
         return (int)((point / terrainSize) * xResolution);
     }
- 
-    private void Smooth(Vector3 point)
-    {
-        int size = 10;
-        int startx = (int)point.x - size;
-        if (startx < 0)
-            startx = 0;
-        int startz = (int)point.z - size;
-        if (startz < 0)
-            startz = 0;
-        int endx = (int)point.x + size;
-        if (endx > terrain.terrainData.heightmapResolution)
-            endx = terrain.terrainData.heightmapResolution;
-        int endz = (int)point.z + size;
-        if (endz > terrain.terrainData.heightmapResolution)
-            endz = terrain.terrainData.heightmapResolution;
-
-        float[,] height = terrain.terrainData.GetHeights(0, 0, terrain.terrainData.heightmapResolution,
-                              terrain.terrainData.heightmapResolution);
-
-        float k = 0.9f;
-        /* Rows, left to right */
-        for (int x = startx; x < endx; x++)
-            for (int z = startz; z < endz; z++)
-                height[x, z] = height[x - 1, z] * (1 - k) + height[x, z] * k;
-
-        /* Rows, right to left*/
-        for (int x = endx - 2; x < startx; x--)
-            for (int z = startz; z < endz; z++)
-                height[x, z] = height[x + 1, z] * (1 - k) + height[x, z] * k;
-
-        /* Columns, bottom to top */
-        for (int x = startx; x < endx; x++)
-            for (int z = startz+1; z < endz; z++)
-                height[x, z] = height[x, z - 1] * (1 - k) + height[x, z] * k;
-
-        /* Columns, top to bottom */
-        for (int x = startx; x < endx; x++)
-            for (int z = endz; z < startz -1; z--)
-                height[x, z] = height[x, z + 1] * (1 - k) + height[x, z] * k;
-
-        terrain.terrainData.SetHeights(0, 0, height);
-    }
 }
+
