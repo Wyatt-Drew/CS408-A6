@@ -6,10 +6,10 @@ public class particleTracker : MonoBehaviour
 {
     private ParticleSystem part;
     private List<ParticleCollisionEvent> collisionEvents;
-    
+
     void Start()
     {
-       part = GetComponent<ParticleSystem>();
+        part = GetComponent<ParticleSystem>();
         collisionEvents = new List<ParticleCollisionEvent>();
     }
 
@@ -21,7 +21,7 @@ public class particleTracker : MonoBehaviour
 
         Rigidbody rb = other.GetComponent<Rigidbody>();
         int i = 0;
-        
+
 
         while (i < numCollisionEvents)
         {

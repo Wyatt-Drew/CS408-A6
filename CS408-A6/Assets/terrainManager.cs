@@ -12,7 +12,6 @@ public class terrainManager : MonoBehaviour
     float MAX_SLOPE_ANGLE = 30f;
     float[] neighborh;
     //Terrain data
-    private float terrainSize;
     public Terrain terrain;
     TerrainData td;
     float unit;
@@ -21,7 +20,6 @@ public class terrainManager : MonoBehaviour
     protected int alphaLayerCount;
     private int xResolution;
     private int zResolution;
-    Vector3 heightMapScale;
     //Original
     private float[,] heightMap;
     //Backup data
@@ -29,36 +27,31 @@ public class terrainManager : MonoBehaviour
     private float[,] originalHeightMap;
     private int[,] hitMap;
 
-    // Start is called before the first frame update
     void Start()
     {
+        //Set frame rate
         Application.targetFrameRate = 60;
+        //
         neighborh = new float[3];
         td = terrain.terrainData;
         MAX_SLOPE_ANGLE = (MAX_SLOPE_ANGLE / 180f) * Mathf.PI;
         unit = td.size.x / (td.heightmapResolution - 1);
-       // Debug.Log("td" + td.size.x + "res" + td.heightmapResolution);
-        terrainSize = terrain.terrainData.size.x;
         //load in map size data
-        xResolution = terrain.terrainData.heightmapResolution;
-        zResolution = terrain.terrainData.heightmapResolution;
-        heightMapScale = terrain.terrainData.heightmapScale;
-
         alphaMapWidth = terrain.terrainData.alphamapWidth;
         alphaMapHeight = terrain.terrainData.alphamapHeight;
         alphaLayerCount = terrain.terrainData.alphamapLayers;
         //
-        heightMap = terrain.terrainData.GetHeights(0, 0, xResolution, zResolution);
-        hitMap = new int[xResolution, zResolution];
-        for (int i = 0; i < xResolution; i++)
-            for (int j = 0; j < zResolution; j++)
-                hitMap[i, j] = 0;
+        heightMap = terrain.terrainData.GetHeights(0, 0, td.heightmapResolution, td.heightmapResolution);
         //save original data to restore later
-        originalHeightMap = terrain.terrainData.GetHeights(0, 0, xResolution, zResolution);
+        originalHeightMap = terrain.terrainData.GetHeights(0, 0, td.heightmapResolution, td.heightmapResolution);
         originalAlphaMap = terrain.terrainData.GetAlphamaps(0, 0, alphaMapWidth, alphaMapHeight);
     }
     //Purpose: To restore the map
     void OnApplicationQuit()
+    {
+        resetMap();
+    }
+    void resetMap()
     {
         terrain.terrainData.SetHeights(0, 0, originalHeightMap);
         terrain.terrainData.SetAlphamaps(0, 0, originalAlphaMap);
@@ -75,8 +68,6 @@ public class terrainManager : MonoBehaviour
                 if (hit1.point != null)
                 {
                     hit(hit1.point);
-                    //heightMap[10, 10] = 10f;
-                    //terrain.terrainData.SetHeights(0, 0, heightMap);
                 }
             }
         }
@@ -141,7 +132,6 @@ public class terrainManager : MonoBehaviour
     }
     void addSand(int x, int y, float height)
     {
-        //float c = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((neighborh[0] - x) * (neighborh[0] - x) + (neighborh[1] - y) * (neighborh[1] - y) * unit);
         float c = Mathf.Tan(MAX_SLOPE_ANGLE) * Mathf.Sqrt((neighborh[0] - x) * (neighborh[0] - x) + (neighborh[1] - y) * (neighborh[1] - y)) * unit;
         // positive offset?
         if (neighborh[2] > 0)
@@ -154,13 +144,11 @@ public class terrainManager : MonoBehaviour
             {
                 height2[0, 0] = (height - extrah) / td.heightmapScale.y;
                 heightMap[y, x] = height2[0, 0];
-                //Debug.Log("in 1");
             }
             else
             {
                 height2[0, 0] = height / td.heightmapScale.y;
                 heightMap[y, x] = height2[0, 0];
-                //Debug.Log("in 2");
             }
             terrain.terrainData.SetHeights(x, y, height2); //For whatever reason X and Y really are reversed here.
             // increase height of pile
@@ -199,8 +187,8 @@ public class terrainManager : MonoBehaviour
     }
     void test()
     {
-        for (int i = 0; i < xResolution; i++)
-            for (int j = 0; j < zResolution; j++)
+        for (int i = 0; i < td.heightmapResolution; i++)
+            for (int j = 0; j < td.heightmapResolution; j++)
                 heightMap[i, j] = 0;
         terrain.terrainData.SetHeights(0, 0, heightMap);
     }
@@ -211,10 +199,5 @@ public class terrainManager : MonoBehaviour
         float actualAngle = terrain.terrainData.GetSteepness(xAdjusted, zAdjusted);
         return actualAngle;
     }
-    int adjust(float point)
-    {
-        return (int)((point / terrainSize) * xResolution);
-    }
-
 }
 

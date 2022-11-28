@@ -18,7 +18,7 @@ public class Movement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       // animator = GetComponent<Animator>();
+        // animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         //originalStepOffset = characterController.stepOffset;
     }
@@ -29,7 +29,7 @@ public class Movement : MonoBehaviour
         float leftRight = Input.GetAxis("Horizontal");
         float upDown = Input.GetAxis("Vertical");
         Vector3 moveDirection = new Vector3(leftRight, 0, upDown);
-        
+
         float magnitude = Mathf.Clamp01(moveDirection.magnitude) * speed;
         moveDirection.Normalize();
 
