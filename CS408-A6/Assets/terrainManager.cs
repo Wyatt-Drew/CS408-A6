@@ -22,10 +22,10 @@ public class terrainManager : MonoBehaviour
     private int zResolution;
     //Original
     private float[,] heightMap;
+    private float[,,] alphaMap;
     //Backup data
     private float[,,] originalAlphaMap;
     private float[,] originalHeightMap;
-    private int[,] hitMap;
 
     void Start()
     {
@@ -42,6 +42,7 @@ public class terrainManager : MonoBehaviour
         alphaLayerCount = terrain.terrainData.alphamapLayers;
         //
         heightMap = terrain.terrainData.GetHeights(0, 0, td.heightmapResolution, td.heightmapResolution);
+        alphaMap = terrain.terrainData.GetAlphamaps(0, 0, alphaMapWidth, alphaMapHeight);
         //save original data to restore later
         originalHeightMap = terrain.terrainData.GetHeights(0, 0, td.heightmapResolution, td.heightmapResolution);
         originalAlphaMap = terrain.terrainData.GetAlphamaps(0, 0, alphaMapWidth, alphaMapHeight);
@@ -49,7 +50,8 @@ public class terrainManager : MonoBehaviour
     //Purpose: To restore the map
     void OnApplicationQuit()
     {
-        resetMap();
+        terrain.terrainData.SetHeights(0, 0, originalHeightMap);
+        terrain.terrainData.SetAlphamaps(0, 0, originalAlphaMap);
     }
     void resetMap()
     {
@@ -144,11 +146,13 @@ public class terrainManager : MonoBehaviour
             {
                 height2[0, 0] = (height - extrah) / td.heightmapScale.y;
                 heightMap[y, x] = height2[0, 0];
+                updateAlphaMap(x, y);
             }
             else
             {
                 height2[0, 0] = height / td.heightmapScale.y;
                 heightMap[y, x] = height2[0, 0];
+                updateAlphaMap(x, y);
             }
             terrain.terrainData.SetHeights(x, y, height2); //For whatever reason X and Y really are reversed here.
             // increase height of pile
@@ -199,5 +203,53 @@ public class terrainManager : MonoBehaviour
         float actualAngle = terrain.terrainData.GetSteepness(xAdjusted, zAdjusted);
         return actualAngle;
     }
+    void updateAlphaMap(int y, int x)
+    {
+        if (alphaMap[y, x, sandID] == 1)
+        {
+            return;
+        }
+        float[,,] element = new float[1, 1, 2]; // create a temp 1x1x2 array
+        alphaMap[y, x, 0] = element[0, 0, 0] = 0; // set the element and
+        alphaMap[y, x, 1] = element[0, 0, 1] = 1; // update splatmapData
+        terrain.terrainData.SetAlphamaps(y, x, element);
+        //alphaMap[x, y, 1] = 1;
+        //alphaMap[x, y, 0] = 0;
+       // td.SetAlphamaps(x, y, alphaMap);
+    }
+    //void updateAlphaMap(int x, int y)
+    //{
+    //        // process points (i,j) around current point (x,y)
+    //    for (int j = -1; j <= 0; j++)
+    //    {
+    //        for (int i = -1; i <= 0; i++)
+    //        {
+    //            for (int k = 0; k < alphaLayerCount; k++)
+    //            {
+    //                // is dirt falling outside of the map?
+    //                bool t1 = (y + j < 0 || x + i < 0);
+    //                bool t2 = x + j >= alphaMapHeight - 1 || x + i >= alphaMapWidth - 1;
+    //                if (t1 || t2)
+    //                {
+    //                    continue;
+    //                }
+    //                // change texture layer number to the maximum,
+    //                // if it represents the texture of dirt;
+    //                // otherwise, change that layer to the minimum
+
+    //                if (k == sandID)
+    //                {
+    //                    alphaMap[y + j, x + i, k] = 1;
+    //                }
+    //                else
+    //                {
+    //                    alphaMap[y + j, x + i, k] = 0;
+    //                }
+    //            }
+    //        }
+
+    //    }
+
+    //}
 }
 
