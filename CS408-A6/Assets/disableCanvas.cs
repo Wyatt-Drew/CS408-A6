@@ -58,7 +58,6 @@ public class disableCanvas : MonoBehaviour
     public void toggleCredits()
     {
         isCredits = !isCredits;
-        Debug.Log(isCredits);
         panel.SetActive(isCredits);
     }
 }
