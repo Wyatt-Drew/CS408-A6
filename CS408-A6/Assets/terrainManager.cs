@@ -53,14 +53,11 @@ public class terrainManager : MonoBehaviour
         terrain.terrainData.SetHeights(0, 0, originalHeightMap);
         terrain.terrainData.SetAlphamaps(0, 0, originalAlphaMap);
     }
-    void resetMap()
-    {
-        terrain.terrainData.SetHeights(0, 0, originalHeightMap);
-        terrain.terrainData.SetAlphamaps(0, 0, originalAlphaMap);
-    }
+
     // Update is called once per frame
     void Update()
     {
+        //Creative feature (Left click to add sand)
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit1;
@@ -73,6 +70,7 @@ public class terrainManager : MonoBehaviour
                 }
             }
         }
+        //Creative feature (Right click to show angle)
         if (Input.GetMouseButtonDown(1))
         {
             RaycastHit hit1;
@@ -80,7 +78,7 @@ public class terrainManager : MonoBehaviour
             if (Physics.Raycast(ray, out hit1))
             {
                 if (hit1.point != null)
-                    Debug.Log(findAngle(hit1.point));
+                    Debug.Log("Terrain Angle: " + findAngle(hit1.point));
             }
         }
     }
@@ -146,13 +144,13 @@ public class terrainManager : MonoBehaviour
             {
                 height2[0, 0] = (height - extrah) / td.heightmapScale.y;
                 heightMap[y, x] = height2[0, 0];
-                updateAlphaMap(x, y);
+                updateAlphaMap(x, y);//Creative feature (Change terrain texture)
             }
             else
             {
                 height2[0, 0] = height / td.heightmapScale.y;
                 heightMap[y, x] = height2[0, 0];
-                updateAlphaMap(x, y);
+                updateAlphaMap(x, y);//Creative feature (Change terrain texture)
             }
             terrain.terrainData.SetHeights(x, y, height2); //For whatever reason X and Y really are reversed here.
             // increase height of pile
@@ -189,13 +187,6 @@ public class terrainManager : MonoBehaviour
             }
         }
     }
-    void test()
-    {
-        for (int i = 0; i < td.heightmapResolution; i++)
-            for (int j = 0; j < td.heightmapResolution; j++)
-                heightMap[i, j] = 0;
-        terrain.terrainData.SetHeights(0, 0, heightMap);
-    }
     float findAngle(Vector3 point)
     {
         float xAdjusted = ((point.x / terrain.terrainData.size.x));
@@ -203,6 +194,7 @@ public class terrainManager : MonoBehaviour
         float actualAngle = terrain.terrainData.GetSteepness(xAdjusted, zAdjusted);
         return actualAngle;
     }
+    //Creative feature (Change terrain texture)
     void updateAlphaMap(int y, int x)
     {
         if (alphaMap[y, x, sandID] == 1)
@@ -210,9 +202,9 @@ public class terrainManager : MonoBehaviour
             return;
         }
         float[,,] element = new float[1, 1, 2]; // create a temp 1x1x2 array
-        alphaMap[y, x, 0] = element[0, 0, 0] = 0; // set the element and
-        alphaMap[y, x, 1] = element[0, 0, 1] = 1; // update splatmapData
-        terrain.terrainData.SetAlphamaps(y, x, element);
+        alphaMap[y, x, 0] = element[0, 0, 0] = 0; // set the element 
+        alphaMap[y, x, 1] = element[0, 0, 1] = 1; 
+        terrain.terrainData.SetAlphamaps(y, x, element); // update alphaMap
     }
 }
 

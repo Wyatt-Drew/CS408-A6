@@ -12,17 +12,11 @@ public class particleTracker : MonoBehaviour
         part = GetComponent<ParticleSystem>();
         collisionEvents = new List<ParticleCollisionEvent>();
     }
-
-
-
     void OnParticleCollision(GameObject other)
     {
         int numCollisionEvents = part.GetCollisionEvents(other, collisionEvents);
-
         Rigidbody rb = other.GetComponent<Rigidbody>();
         int i = 0;
-
-
         while (i < numCollisionEvents)
         {
             //Debug.Log("in");

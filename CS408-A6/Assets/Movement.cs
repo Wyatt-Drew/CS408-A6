@@ -39,11 +39,11 @@ public class Movement : MonoBehaviour
         m_MainCamera.transform.position += (velocity * Time.deltaTime);
         velocity.y = ySpeed;
         characterController.Move(velocity * Time.deltaTime);
-        //sack.transform.eularAngles.x = 180;
 
+        // Creative Feature (move sack towards direction of movement)
         if (moveDirection != Vector3.zero)
         {
-            animator.SetBool("isMoving", true);
+            animator.SetBool("isMoving", true); //Trigger animation change
             Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
             sack.transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
@@ -52,7 +52,11 @@ public class Movement : MonoBehaviour
         {
             animator.SetBool("isMoving", false);
         }
-
+        getInput();
+    }
+    void getInput()
+    {
+        //Creative feature (camera zoom)
         if (Input.mouseScrollDelta.y != 0f)
         {
             CinemachineComponentBase componentBase = m_MainCamera.GetCinemachineComponent(CinemachineCore.Stage.Body);
@@ -61,10 +65,7 @@ public class Movement : MonoBehaviour
                 (componentBase as CinemachineFramingTransposer).m_CameraDistance = (componentBase as CinemachineFramingTransposer).m_CameraDistance + Input.mouseScrollDelta.y * Time.deltaTime * 100f; // your value
             }
         }
-        getInput();
-    }
-    void getInput()
-    {
+        //Creative feature (camera movement)
         foreach (char c in Input.inputString.ToLower())
         {
             switch (c)

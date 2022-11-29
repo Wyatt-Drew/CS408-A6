@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//This module handles particle system and canvas commands
-
 public class disableCanvas : MonoBehaviour
 {
     private bool isPaused = false;
@@ -15,10 +13,9 @@ public class disableCanvas : MonoBehaviour
     {
         miscLogic = FindObjectOfType<miscLogic>();
     }
-
-    // Update is called once per frame
     void Update()
     {
+        //Creative feature (Instructions)
         if (isMenu)
         {
             if (Input.inputString != "")
@@ -54,7 +51,7 @@ public class disableCanvas : MonoBehaviour
         }
     }
 
-    //Toggle credits
+    //Creative feature (Credits)
     public void toggleCredits()
     {
         isCredits = !isCredits;

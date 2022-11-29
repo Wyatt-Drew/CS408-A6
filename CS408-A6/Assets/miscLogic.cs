@@ -16,6 +16,8 @@ public class miscLogic : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Creative feature (Sand sound)
+        //Creative feature (Change emission rate)
         foreach (char c in Input.inputString.ToLower())
         {
             switch (c)
@@ -45,6 +47,7 @@ public class miscLogic : MonoBehaviour
             }
         }
     }
+    //Creative feature (pause emission)
     public void toggleEmission(bool toggle)
     {
         part.Play(); //Needed to allow particles to spawn at all
@@ -53,6 +56,7 @@ public class miscLogic : MonoBehaviour
         toggleSandVolume(toggle);
         //part.Clear();  //clears all particles
     }
+    //Creative feature (Sand sound)
     public void toggleSandVolume(bool active)
     {
         if (active)
