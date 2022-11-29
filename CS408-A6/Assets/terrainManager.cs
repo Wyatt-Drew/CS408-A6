@@ -213,43 +213,6 @@ public class terrainManager : MonoBehaviour
         alphaMap[y, x, 0] = element[0, 0, 0] = 0; // set the element and
         alphaMap[y, x, 1] = element[0, 0, 1] = 1; // update splatmapData
         terrain.terrainData.SetAlphamaps(y, x, element);
-        //alphaMap[x, y, 1] = 1;
-        //alphaMap[x, y, 0] = 0;
-       // td.SetAlphamaps(x, y, alphaMap);
     }
-    //void updateAlphaMap(int x, int y)
-    //{
-    //        // process points (i,j) around current point (x,y)
-    //    for (int j = -1; j <= 0; j++)
-    //    {
-    //        for (int i = -1; i <= 0; i++)
-    //        {
-    //            for (int k = 0; k < alphaLayerCount; k++)
-    //            {
-    //                // is dirt falling outside of the map?
-    //                bool t1 = (y + j < 0 || x + i < 0);
-    //                bool t2 = x + j >= alphaMapHeight - 1 || x + i >= alphaMapWidth - 1;
-    //                if (t1 || t2)
-    //                {
-    //                    continue;
-    //                }
-    //                // change texture layer number to the maximum,
-    //                // if it represents the texture of dirt;
-    //                // otherwise, change that layer to the minimum
-
-    //                if (k == sandID)
-    //                {
-    //                    alphaMap[y + j, x + i, k] = 1;
-    //                }
-    //                else
-    //                {
-    //                    alphaMap[y + j, x + i, k] = 0;
-    //                }
-    //            }
-    //        }
-
-    //    }
-
-    //}
 }
 

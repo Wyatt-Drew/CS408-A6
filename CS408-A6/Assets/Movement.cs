@@ -18,9 +18,7 @@ public class Movement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
-        //originalStepOffset = characterController.stepOffset;
     }
 
     // Update is called once per frame
