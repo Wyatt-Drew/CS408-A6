@@ -8,10 +8,12 @@ public class miscLogic : MonoBehaviour
     private float sandVolume = 0.5f;
     private float emissionRate = 50f;
     public ParticleSystem part;
+    
     void Start()
     {
         toggleSandVolume(false);
         SandAudio.Play();
+        
     }
     // Update is called once per frame
     void Update()

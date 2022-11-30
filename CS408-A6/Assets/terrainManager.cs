@@ -26,7 +26,8 @@ public class terrainManager : MonoBehaviour
     //Backup data
     private float[,,] originalAlphaMap;
     private float[,] originalHeightMap;
-
+    //misc
+    private bool isMenu = true;
     void Start()
     {
         //Set frame rate
@@ -57,28 +58,31 @@ public class terrainManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Creative feature (Left click to add sand)
-        if (Input.GetMouseButtonDown(0))
+        if (!isMenu)
         {
-            RaycastHit hit1;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit1))
+            //Creative feature (Left click to add sand)
+            if (Input.GetMouseButtonDown(0))
             {
-                if (hit1.point != null)
+                RaycastHit hit1;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out hit1))
                 {
-                    hit(hit1.point);
+                    if (hit1.point != null)
+                    {
+                        hit(hit1.point);
+                    }
                 }
             }
-        }
-        //Creative feature (Right click to show angle)
-        if (Input.GetMouseButtonDown(1))
-        {
-            RaycastHit hit1;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit1))
+            //Creative feature (Right click to show angle)
+            if (Input.GetMouseButtonDown(1))
             {
-                if (hit1.point != null)
-                    Debug.Log("Terrain Angle: " + findAngle(hit1.point));
+                RaycastHit hit1;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out hit1))
+                {
+                    if (hit1.point != null)
+                        Debug.Log("Terrain Angle: " + findAngle(hit1.point));
+                }
             }
         }
     }
@@ -205,6 +209,10 @@ public class terrainManager : MonoBehaviour
         alphaMap[y, x, 0] = element[0, 0, 0] = 0; // set the element 
         alphaMap[y, x, 1] = element[0, 0, 1] = 1; 
         terrain.terrainData.SetAlphamaps(y, x, element); // update alphaMap
+    }
+    public void updateIsMenu(bool cur)
+    {
+        isMenu = cur;
     }
 }
 

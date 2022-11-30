@@ -9,9 +9,11 @@ public class disableCanvas : MonoBehaviour
     private bool isCredits = false;
     private miscLogic miscLogic;
     public GameObject panel;
+    private terrainManager terrainManager;
     void Start()
     {
         miscLogic = FindObjectOfType<miscLogic>();
+        terrainManager = FindObjectOfType<terrainManager>();
     }
     void Update()
     {
@@ -22,6 +24,7 @@ public class disableCanvas : MonoBehaviour
             {
                 GameObject.Find("Canvas").GetComponent<Canvas>().enabled = false;
                 isMenu = false;
+                terrainManager.updateIsMenu(false);
                 miscLogic.toggleEmission(!isPaused);
                 if (isCredits)
                     toggleCredits();
@@ -36,6 +39,7 @@ public class disableCanvas : MonoBehaviour
                     {
                         GameObject.Find("Canvas").GetComponent<Canvas>().enabled = true;
                         isMenu = true;
+                        terrainManager.updateIsMenu(true);
                         miscLogic.toggleEmission(false);
                         return;
                         //break;
@@ -46,7 +50,6 @@ public class disableCanvas : MonoBehaviour
                         miscLogic.toggleEmission(!isPaused);
                         break;
                     }
-
             }
         }
     }
